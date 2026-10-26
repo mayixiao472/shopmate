@@ -14,7 +14,7 @@ def _chunk(q, a):
 
 
 @pytest.fixture()
-def milvus():
+def milvus(milvus_available):
     client = milvus_client.get_client(uri=URI)
     name = f"test_kb_{uuid.uuid4().hex[:8]}"
     milvus_client.ensure_collection(client, collection=name)

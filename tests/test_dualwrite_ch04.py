@@ -8,7 +8,7 @@ from app.kb.documents import Chunk
 URI = "http://localhost:19530"
 
 
-async def test_vectorize_writes_bm25_and_metadata(db_session_factory, monkeypatch):
+async def test_vectorize_writes_bm25_and_metadata(db_session_factory, milvus_available, monkeypatch):
     # 嵌入 mock 成定长向量
     async def fake_embed(texts):
         return [[0.05] * 1024 for _ in texts]

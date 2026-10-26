@@ -117,6 +117,17 @@ async def db_clean():
 
 
 @pytest.fixture()
+def milvus_available():
+    """Milvus 服务不可用(如 CI 未起服务)时跳过依赖它的测试,而不是失败。"""
+    from app.kb import milvus_client as mc
+    try:
+        client = mc.get_client(uri="http://localhost:19530")
+        client.list_collections()   # 真正发起连接,连不上会超时抛错
+    except Exception as e:          # noqa: BLE001 - 连接类异常种类多,统一按不可用处理
+        pytest.skip(f"Milvus 不可用,跳过本测试({type(e).__name__}: {e})")
+
+
+@pytest.fixture()
 def client():
     """返回 FastAPI TestClient 用于 API 测试(包含 actions 路由)。"""
     from app.api.actions import router as actions_router
