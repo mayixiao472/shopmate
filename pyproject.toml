@@ -29,6 +29,7 @@ dev = [
     "httpx2>=2.5.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
 ]
 # ch10 训练/导出重依赖:主应用运行时不需要,uv run --group ml 按需装
 ml = [

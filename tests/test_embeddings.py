@@ -30,7 +30,7 @@ async def test_embed_texts_passes_model_and_input(monkeypatch):
     monkeypatch.setattr(embeddings, "_client", lambda: fake)
     out = await embeddings.embed_texts(["a", "b"])
     assert out == [[0.0, 0.0, 1.0], [1.0, 0.0, 1.0]]
-    assert fake.embeddings.calls == [("BAAI/bge-m3", ["a", "b"])]
+    assert fake.embeddings.calls == [("text-embedding-v3", ["a", "b"])]   # 以 config 默认值为准
 
 
 async def test_embed_query_returns_single_vector(monkeypatch):

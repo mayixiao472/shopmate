@@ -1,5 +1,9 @@
 # ShopMate — 电商智能客服 Agent
 
+[![CI](https://github.com/mayixiao472/shopmate/actions/workflows/ci.yml/badge.svg)](https://github.com/mayixiao472/shopmate/actions)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![coverage](https://img.shields.io/badge/coverage-xx%25-yellow)](https://github.com/mayixiao472/shopmate/actions)
+
 一个能查订单物流、答政策 FAQ、走退款子流程、挖知识补库、还能微调一个主题分类器的完整客服系统。
 
 项目按 10 个迭代里程碑开发：从一个纯流式对话接口起步，逐步长出工具调用、RAG 知识库、
@@ -13,6 +17,21 @@ FastAPI + LangGraph / LangChain + SQLAlchemy / MySQL + Milvus。
 
 聊天、嵌入、重排三组上游各自直连，没有网关那一层。模型名和地址都在 `.env` 里配
 （`CHAT_*` / `EMBED_*` / `RERANK_*` 三组），换供应商、换模型不用改代码。
+
+## 架构
+
+```mermaid
+flowchart LR
+    U[浏览器<br/>聊天 / 知识库 / 审核 / 观测页] -->|SSE 流式| API[FastAPI 应用<br/>app/api]
+    API --> G[LangGraph 编排<br/>app/graph<br/>分流 + ReAct + 置信度闸]
+    G --> C[单点能力 app/core<br/>检索 / 重排 / 置信度 / 摘要 / 飞轮]
+    C --> LLM[上游 LLM ×3<br/>chat · embed · rerank<br/>各自直连]
+    C --> DB[(MySQL<br/>权威数据 + 审计)]
+    C --> MV[(Milvus<br/>向量 + BM25 混合检索)]
+    G --> MCP[MCP Server ×2<br/>物流 :8101 · 售后 :8102]
+    API -.追踪.-> LF[Langfuse<br/>观测与成本]
+    G -.调用.-> CLS[主题分类器<br/>ONNX 推理 :8110]
+```
 
 ## 功能
 
@@ -69,6 +88,18 @@ make dev                  # MCP :8101/:8102 + 应用 :8000
 | ch10 | 主题分类器。语料、微调、阈值扫描、ONNX 推理服务 | `make ch10-corpus` `make ch10-train` `make ch10-eval` |
 
 `make help` 能看到带说明的完整目标清单。
+
+## 设计决策
+
+三篇「为什么这么做」的短文,与代码一一对应,评审/面试前可先读:
+
+- [上下文管理与前缀缓存](docs/design/prefix-cache-context.md) —— 单条恒定 SystemMessage + 双层滑窗 + 后台摘要;含 22.4s→1.4s 的成本实测
+- [检索链路](docs/design/retrieval-pipeline.md) —— 切块 / 双写 / 混合检索 + RRF / 重排 / 改写;含四桶 300 题评估实测
+- [置信度闸门与数据飞轮](docs/design/confidence-flywheel.md) —— 零成本四信号置信度 + 落池 → 审核 → 回灌闭环
+
+## 界面预览
+
+> 运行截图占位,待补充:聊天页(多轮 + 工具调用标记)、观测页(成本账)。
 
 ## 端口
 

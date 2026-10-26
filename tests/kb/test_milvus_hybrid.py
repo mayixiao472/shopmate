@@ -9,7 +9,11 @@ URI = "http://localhost:19530"
 
 @pytest.fixture()
 def coll():
-    client = mc.get_client(uri=URI)
+    try:
+        client = mc.get_client(uri=URI)      # 内部等待 channel 就绪,连不上会超时抛错
+        client.list_collections()            # 再补一发真实连接:CI 无 Milvus 服务时跳过而非失败
+    except Exception as e:                   # noqa: BLE001 - 连接类异常种类多,统一按不可用处理
+        pytest.skip(f"Milvus 不可用,跳过本测试({type(e).__name__}: {e})")
     name = f"test_kb_{uuid.uuid4().hex[:8]}"
     mc.ensure_collection(client, collection=name)
     rows = [

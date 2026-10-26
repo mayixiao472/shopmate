@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=24
+      # 注:Milvus 不在这里起服务——tests/kb/test_milvus_hybrid.py 连不上会自动 skip
+    env:
+      # 启动 app.config 需要三组上游 key;测试里不碰真实模型,这里只放占位值
+      CHAT_MODEL: deepseek-ai/DeepSeek-V4-Flash
+      CHAT_BASE_URL: https://api.siliconflow.cn/v1
+      CHAT_API_KEY: sk-test
+      EMBED_API_KEY: sk-test
+      RERANK_API_KEY: sk-test
+      # 显式走 127.0.0.1,绕开 localhost 解析到 ::1 连不上 service 容器的问题
+      DATABASE_URL: mysql+asyncmy://root:root@127.0.0.1:3306/shopmate
+      TEST_DATABASE_URL: mysql+asyncmy://root:root@127.0.0.1:3306/shopmate_ch02_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 安装依赖
+        run: uv sync --group dev
+      - name: 跑测试(带覆盖率)
+        run: uv run pytest -q --cov=app --cov=mcp_servers --cov-report=term-missing

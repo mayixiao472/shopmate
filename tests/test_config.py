@@ -12,8 +12,14 @@ _REQUIRED = {
     "RERANK_API_KEY": "sk-test",
 }
 
+# 有代码默认值的变量:测试默认值时先清掉,防 .env 被 dotenv 加载进 os.environ 污染
+# (实测 langsmith 插件会 load_dotenv,pytest 全量跑时 EMBED_BASE_URL 等会凭空出现)
+_DEFAULTED = ["EMBED_BASE_URL", "RERANK_BASE_URL", "EMBED_MODEL", "RERANK_MODEL", "TOKEN_BUDGET"]
+
 
 def _fill(monkeypatch, skip=None):
+    for k in _DEFAULTED:
+        monkeypatch.delenv(k, raising=False)
     for k, v in _REQUIRED.items():
         if k == skip:
             monkeypatch.delenv(k, raising=False)
@@ -43,7 +49,7 @@ def test_settings_defaults(monkeypatch):
     _fill(monkeypatch)
     s = Settings(_env_file=None)
     assert s.token_budget == 2000
-    assert s.rerank_model == "BAAI/bge-reranker-v2-m3"
+    assert s.rerank_model == "rerank"   # 上游真实名(ch03 起模型已切换,以代码默认值为准)
 
 
 def test_settings_env_override(monkeypatch):
