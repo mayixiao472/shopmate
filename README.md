@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/mayixiao472/shopmate/actions/workflows/ci.yml/badge.svg)](https://github.com/mayixiao472/shopmate/actions)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![coverage](https://img.shields.io/badge/coverage-xx%25-yellow)](https://github.com/mayixiao472/shopmate/actions)
+[![coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)](https://github.com/mayixiao472/shopmate/actions)
 
 一个能查订单物流、答政策 FAQ、走退款子流程、挖知识补库、还能微调一个主题分类器的完整客服系统。
 
